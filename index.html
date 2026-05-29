@@ -284,6 +284,22 @@
         let ruletaParticipantes = [];
         let isSpinning = false;
 
+        // PARSER PROTEGIDO PARA LOGICAS EN BUCLE O ENVOLTORIOS DE N8N
+        function normalizeN8NData(rawData) {
+            let results = [];
+            if (Array.isArray(rawData)) {
+                results = rawData.map(item => item.json ? item.json : item);
+            } else if (rawData && Array.isArray(rawData.clientes)) {
+                results = rawData.clientes.map(item => item.json ? item.json : item);
+            } else if (rawData && typeof rawData === 'object') {
+                let single = rawData.json ? rawData.json : rawData;
+                if (single.Customer_Name || single.customer_name || single.Customer_ID) {
+                    results = [single];
+                }
+            }
+            return results;
+        }
+
         // PERSISTENCIA ABSOLUTA (LOCALSTORAGE)
         function saveSettingsToStorage() {
             const settings = {
@@ -295,11 +311,11 @@
                 desc: document.getElementById('input-prize-desc').value,
                 webhook: document.getElementById('input-webhook-url').value
             };
-            localStorage.setItem('bigbang_jackpot_v5_settings', JSON.stringify(settings));
+            localStorage.setItem('bigbang_jackpot_v6_settings', JSON.stringify(settings));
         }
 
         function loadSettingsFromStorage() {
-            const saved = localStorage.getItem('bigbang_jackpot_v5_settings');
+            const saved = localStorage.getItem('bigbang_jackpot_v6_settings');
             const defaults = {
                 title: "🏆 ¡Gran Premio BigBang! 🏆",
                 name: "Gran Electrodoméstico",
@@ -339,18 +355,13 @@
             if (tabId === 'tab-ruleta') drawWheel();
         }
 
-        // CONTROL DE DATOS PROTEGIDO CONTRA RESPUESTAS ERRÓNEAS DE N8N
         async function fetchJackpotData() {
             try {
                 const response = await fetch(currentWebhookUrl);
                 if (!response.ok) throw new Error("HTTP Status: " + response.status);
                 const data = await response.json();
                 
-                if (Array.isArray(data)) {
-                    dataGlobal.clientes = data;
-                } else if (data && Array.isArray(data.clientes)) {
-                    dataGlobal.clientes = data.clientes;
-                }
+                dataGlobal.clientes = normalizeN8NData(data);
 
                 renderDashboard();
                 updateAdminPool();
@@ -367,11 +378,7 @@
                 if (!response.ok) throw new Error("Código: " + response.status);
                 const data = await response.json();
                 
-                if (Array.isArray(data)) {
-                    dataGlobal.clientes = data;
-                } else if (data && Array.isArray(data.clientes)) {
-                    dataGlobal.clientes = data.clientes;
-                }
+                dataGlobal.clientes = normalizeN8NData(data);
 
                 renderDashboard();
                 updateAdminPool();
@@ -383,7 +390,6 @@
         }
 
         function renderDashboard() {
-            // Adaptado a las columnas exactas de tu tabla de n8n (Mapeo Inteligente)
             const totalTickets = dataGlobal.clientes.reduce((acc, c) => acc + parseInt(c.Numero_De_Tickets || c.tickets || 0), 0);
             document.getElementById('global-ticket-count').innerText = String(totalTickets).padStart(3, '0');
 
