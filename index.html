@@ -221,7 +221,7 @@
                             </div>
                             <div>
                                 <label class="block text-[10px] uppercase font-bold text-gray-400 mb-0.5">Tiempo / Estado</label>
-                                <input type="text" id="input-prize-time" value="Sorteo Periódico Activo" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none" placeholder="Ej: Faltan 2 días">
+                                <input type="text" id="input-prize-time" value="Sorteo Periódico Activo" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none">
                             </div>
                         </div>
                         <div>
@@ -244,8 +244,8 @@
                     
                     <div class="space-y-2 mb-3">
                         <div>
-                            <label class="block text-[9px] uppercase font-bold text-gray-500 mb-0.5">Ruta del Webhook API (n8n VPS)</label>
-                            <input type="text" id="input-webhook-url" value="https://n8n-stanlyrodriguez-vps.duckdns.org/webhook-test/Jackpot-Tickets" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1 text-[11px] text-gray-400 font-mono focus:outline-none focus:border-cyan-500">
+                            <label class="block text-[9px] uppercase font-bold text-gray-500 mb-0.5">Ruta del Webhook API (Producción Oficial)</label>
+                            <input type="text" id="input-webhook-url" value="https://n8n-stanlyrodriguez-vps.duckdns.org/webhook/Jackpot-Tickets" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1 text-[11px] text-gray-400 font-mono focus:outline-none focus:border-cyan-500">
                         </div>
                     </div>
 
@@ -281,7 +281,7 @@
     </footer>
 
     <script>
-        let currentWebhookUrl = "https://n8n-stanlyrodriguez-vps.duckdns.org/webhook-test/Jackpot-Tickets";
+        let currentWebhookUrl = "https://n8n-stanlyrodriguez-vps.duckdns.org/webhook/Jackpot-Tickets";
         let dataGlobal = { clientes: [] };
         let metaTickets = 100;
         let ruletaParticipantes = [];
@@ -301,9 +301,8 @@
             }
         }
 
-        // FETCH WEBHOOK DINÁMICO
+        // FETCH WEBHOOK
         async function fetchJackpotData() {
-            // Leer URL directamente desde el input de administración si existe
             const inputUrl = document.getElementById('input-webhook-url');
             if (inputUrl && inputUrl.value.trim() !== "") {
                 currentWebhookUrl = inputUrl.value.trim();
@@ -330,7 +329,7 @@
             alert("Sincronización completada exitosamente.");
         }
 
-        // RENDERIZADOR DASHBOARD (ESTRUCTURAS SOLICITADAS)
+        // RENDERIZADOR DASHBOARD 
         function renderDashboard() {
             const totalTickets = dataGlobal.clientes.reduce((acc, c) => acc + parseInt(c.tickets || 0), 0);
             document.getElementById('global-ticket-count').innerText = String(totalTickets).padStart(3, '0');
@@ -339,13 +338,15 @@
             document.getElementById('goal-percentage').innerText = `${pctMeta}%`;
             document.getElementById('goal-bar').style.width = `${pctMeta}%`;
 
-            // 1. RENDERIZADO COMPRAS RECIENTES
+            // 1. RENDERIZADO COMPRAS RECIENTES (Muestra tickets si existen)
             const recentContainer = document.getElementById('recent-purchases-container');
             recentContainer.innerHTML = "";
             if (dataGlobal.clientes.length === 0) {
                 recentContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">Esperando actividad...</p>`;
             } else {
                 dataGlobal.clientes.forEach(c => {
+                    const tkts = parseInt(c.tickets || 0);
+                    const tktsBadge = tkts > 0 ? ` / <span class="text-yellow-500 font-bold">${tkts} Tkts</span>` : '';
                     recentContainer.innerHTML += `
                         <div class="bg-gray-900/50 p-2.5 rounded-xl border border-gray-800/40 flex justify-between items-center text-xs">
                             <div class="flex items-center gap-2">
@@ -353,14 +354,14 @@
                                 <span class="font-medium text-gray-200">${c.customer_name}</span>
                             </div>
                             <div class="text-gray-400 text-[11px] font-mono">
-                                <span>${c.puntos_periodo || 0} Pts</span>
+                                <span>${c.puntos_periodo || 0} Pts${tktsBadge}</span>
                             </div>
                         </div>
                     `;
                 });
             }
 
-            // 2. RENDERIZADO TOP 10 DE TICKETS (CON PROBABILIDADES)
+            // 2. RENDERIZADO TOP 10 DE TICKETS 
             const leaderboardContainer = document.getElementById('top-leaderboard');
             leaderboardContainer.innerHTML = "";
             const top10 = [...dataGlobal.clientes].sort((a, b) => b.tickets - a.tickets).slice(0, 10);
@@ -377,7 +378,7 @@
                                 <span class="font-semibold text-gray-300">${c.customer_name}</span>
                             </div>
                             <div class="font-mono text-right flex items-center gap-2">
-                                <span class="text-yellow-400 font-bold">${c.tickets} Tkts</span>
+                                <span class="text-yellow-400 font-bold">${c.tickets || 0} Tkts</span>
                                 <span class="text-[10px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded font-bold">${probabilidad}% éxito</span>
                             </div>
                         </div>
@@ -402,7 +403,7 @@
             if(desc) document.getElementById('display-prize-desc').innerText = desc;
 
             renderDashboard();
-            alert("Ajustes avanzados aplicados correctamente.");
+            alert("Ajustes de sorteo aplicados correctamente.");
         }
 
         function updateAdminPool() {
@@ -412,7 +413,7 @@
             document.getElementById('pool-count').innerText = `${aptos.length} Activos`;
 
             if(aptos.length === 0) {
-                list.innerHTML = `<div class="p-2 text-center text-gray-600 italic">No hay datos de clientes</div>`;
+                list.innerHTML = `<div class="p-2 text-center text-gray-600 italic">No hay datos de clientes con tickets</div>`;
             } else {
                 aptos.forEach(c => {
                     list.innerHTML += `<div class="flex justify-between py-0.5 border-b border-gray-900"><span>• ${c.customer_name}</span><span>${c.tickets} Tkts</span></div>`;
@@ -494,11 +495,9 @@
                 const idxGanador = Math.floor(corrected / angleSegment) % segments;
                 const ganador = ruletaParticipantes[idxGanador];
 
-                // Mostrar en pantalla principal de Ruleta
                 document.getElementById('winner-name').innerText = ganador.toUpperCase();
                 document.getElementById('winner-display').classList.remove('hidden');
 
-                // Registrar en log administrativo de ganadores
                 const logContainer = document.getElementById('admin-winner-log');
                 if (logContainer.innerHTML.includes("Ningún giro registrado")) logContainer.innerHTML = "";
                 const timeStamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
