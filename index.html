@@ -300,8 +300,6 @@
 
         function loadSettingsFromStorage() {
             const saved = localStorage.getItem('bigbang_jackpot_v5_settings');
-            
-            // Valores por defecto infalibles si no hay nada guardado
             const defaults = {
                 title: "🏆 ¡Gran Premio BigBang! 🏆",
                 name: "Gran Electrodoméstico",
@@ -314,7 +312,6 @@
 
             const s = saved ? JSON.parse(saved) : defaults;
 
-            // Inyectar en inputs del panel de administración
             document.getElementById('input-prize-title').value = s.title || defaults.title;
             document.getElementById('input-prize-name').value = s.name || defaults.name;
             document.getElementById('input-prize-url').value = s.url || defaults.url;
@@ -326,7 +323,6 @@
             metaTickets = parseInt(s.goal || defaults.goal) || 100;
             currentWebhookUrl = s.webhook || defaults.webhook;
 
-            // Pintar visualmente en las pantallas principales
             document.getElementById('display-prize-title').innerText = s.title || defaults.title;
             document.getElementById('display-prize-name').innerText = s.name || defaults.name;
             document.getElementById('display-prize-img').src = s.url || defaults.url;
@@ -350,13 +346,10 @@
                 if (!response.ok) throw new Error("HTTP Status: " + response.status);
                 const data = await response.json();
                 
-                // Forzar formato de Arreglo (Evita que la interfaz se caiga si n8n manda un Objeto simple)
                 if (Array.isArray(data)) {
                     dataGlobal.clientes = data;
                 } else if (data && Array.isArray(data.clientes)) {
                     dataGlobal.clientes = data.clientes;
-                } else {
-                    console.warn("n8n no está enviando un arreglo de clientes aún.", data);
                 }
 
                 renderDashboard();
@@ -378,9 +371,6 @@
                     dataGlobal.clientes = data;
                 } else if (data && Array.isArray(data.clientes)) {
                     dataGlobal.clientes = data.clientes;
-                } else {
-                    alert("⚠️ ¡Atención!\n\nEl webhook conectó con éxito, pero devolvió una confirmación en lugar de la lista completa de clientes.\n\nRecuerda añadir un nodo al final de tu flujo en n8n que lea todas las filas ('Get Many Rows') de tu tabla de clientes.");
-                    return;
                 }
 
                 renderDashboard();
@@ -393,30 +383,34 @@
         }
 
         function renderDashboard() {
-            const totalTickets = dataGlobal.clientes.reduce((acc, c) => acc + parseInt(c.tickets || 0), 0);
+            // Adaptado a las columnas exactas de tu tabla de n8n (Mapeo Inteligente)
+            const totalTickets = dataGlobal.clientes.reduce((acc, c) => acc + parseInt(c.Numero_De_Tickets || c.tickets || 0), 0);
             document.getElementById('global-ticket-count').innerText = String(totalTickets).padStart(3, '0');
 
             const pctMeta = Math.min(Math.round((totalTickets / metaTickets) * 100), 100);
             document.getElementById('goal-percentage').innerText = `${pctMeta}%`;
             document.getElementById('goal-bar').style.width = `${pctMeta}%`;
 
-            // RENDERIZADO COMPRAS RECIENTES (Muestra puntos históricos aunque no tengan tickets aún)
+            // RENDERIZADO COMPRAS RECIENTES 
             const recentContainer = document.getElementById('recent-purchases-container');
             recentContainer.innerHTML = "";
             if (dataGlobal.clientes.length === 0) {
                 recentContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">Esperando actualización o datos del servidor...</p>`;
             } else {
                 dataGlobal.clientes.forEach(c => {
-                    const tkts = parseInt(c.tickets || 0);
-                    const tktsBadge = tkts > 0 ? ` / <span class="text-yellow-500 font-bold">${tkts} Tkts</span>` : '';
+                    const name = c.Customer_Name || c.customer_name || 'Cliente';
+                    const puntos = c.Puntos_Del_Periodo !== undefined ? c.Puntos_Del_Periodo : (c.puntos_periodo || 0);
+                    const tkts = parseInt(c.Numero_De_Tickets || c.tickets || 0);
+                    const tktsBadge = tkts > 0 ? ` / <span class="text-yellow-500 font-bold">${tkts} Tkts</span>` : ' / 0 Tkts';
+                    
                     recentContainer.innerHTML += `
                         <div class="bg-gray-900/50 p-2.5 rounded-xl border border-gray-800/40 flex justify-between items-center text-xs">
                             <div class="flex items-center gap-2">
                                 <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                                <span class="font-medium text-gray-200">${c.customer_name || 'Cliente Sin Nombre'}</span>
+                                <span class="font-medium text-gray-200">${name}</span>
                             </div>
                             <div class="text-gray-400 text-[11px] font-mono">
-                                <span>${c.puntos_periodo || c.puntos || 0} Pts${tktsBadge}</span>
+                                <span>${puntos} Pts${tktsBadge}</span>
                             </div>
                         </div>
                     `;
@@ -426,21 +420,24 @@
             // RENDERIZADO TOP 10
             const leaderboardContainer = document.getElementById('top-leaderboard');
             leaderboardContainer.innerHTML = "";
-            const top10 = [...dataGlobal.clientes].sort((a, b) => parseInt(b.tickets || 0) - parseInt(a.tickets || 0)).slice(0, 10);
+            const top10 = [...dataGlobal.clientes].sort((a, b) => parseInt(b.Numero_De_Tickets || b.tickets || 0) - parseInt(a.Numero_De_Tickets || a.tickets || 0)).slice(0, 10);
 
             if (top10.length === 0) {
                 leaderboardContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">No hay boletos emitidos en este ciclo.</p>`;
             } else {
                 top10.forEach((c, idx) => {
-                    const probabilidad = totalTickets > 0 ? Math.round((parseInt(c.tickets || 0) / totalTickets) * 100) : 0;
+                    const name = c.Customer_Name || c.customer_name || 'Cliente';
+                    const tkts = parseInt(c.Numero_De_Tickets || c.tickets || 0);
+                    const probabilidad = totalTickets > 0 ? Math.round((tkts / totalTickets) * 100) : 0;
+                    
                     leaderboardContainer.innerHTML += `
                         <div class="bg-gray-900/60 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs">
                             <div class="flex items-center gap-2">
                                 <span class="w-5 h-5 text-[10px] flex items-center justify-center font-bold rounded bg-gray-950 text-purple-400 border border-purple-900/30">${idx + 1}</span>
-                                <span class="font-semibold text-gray-300">${c.customer_name || 'Cliente'}</span>
+                                <span class="font-semibold text-gray-300">${name}</span>
                             </div>
                             <div class="font-mono text-right flex items-center gap-2">
-                                <span class="text-yellow-400 font-bold">${c.tickets || 0} Tkts</span>
+                                <span class="text-yellow-400 font-bold">${tkts} Tkts</span>
                                 <span class="text-[10px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded font-bold">${probabilidad}%</span>
                             </div>
                         </div>
@@ -465,7 +462,7 @@
 
             saveSettingsToStorage();
             renderDashboard();
-            alert("🔒 Configuración del premio y textos guardada de forma permanente.");
+            alert("🔒 Configuración del premio guardada.");
         }
 
         function updateAdminPool() {
@@ -478,7 +475,9 @@
                 list.innerHTML = `<div class="p-2 text-center text-gray-600 italic">No hay datos en cache</div>`;
             } else {
                 aptos.forEach(c => {
-                    list.innerHTML += `<div class="flex justify-between py-0.5 border-b border-gray-900"><span>• ${c.customer_name || 'Anonimo'}</span><span>${c.tickets || 0} Tkts</span></div>`;
+                    const name = c.Customer_Name || c.customer_name || 'Anónimo';
+                    const tkts = c.Numero_De_Tickets || c.tickets || 0;
+                    list.innerHTML += `<div class="flex justify-between py-0.5 border-b border-gray-900"><span>• ${name}</span><span>${tkts} Tkts</span></div>`;
                 });
             }
         }
@@ -499,8 +498,9 @@
         function loadDatabaseToRoulette() {
             ruletaParticipantes = [];
             dataGlobal.clientes.forEach(c => {
-                const tkts = parseInt(c.tickets || 0);
-                for(let i=0; i<tkts; i++) ruletaParticipantes.push(c.customer_name || 'Cliente');
+                const name = c.Customer_Name || c.customer_name || 'Cliente';
+                const tkts = parseInt(c.Numero_De_Tickets || c.tickets || 0);
+                for(let i=0; i<tkts; i++) ruletaParticipantes.push(name);
             });
             if(ruletaParticipantes.length === 0) {
                 ruletaParticipantes = ["Esperando Clientes", "BigBang Sorteo", "BigBang POS"];
