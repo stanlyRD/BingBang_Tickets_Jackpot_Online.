@@ -18,7 +18,6 @@
         }
         .font-cosmic { font-family: 'Orbitron', sans-serif; }
         
-        /* Estilos Neón */
         .neon-border-orange {
             box-shadow: 0 0 20px rgba(249, 115, 22, 0.25), inset 0 0 15px rgba(249, 115, 22, 0.05);
             border: 1px solid rgba(249, 115, 22, 0.4);
@@ -27,14 +26,12 @@
             text-shadow: 0 0 15px rgba(234, 179, 8, 0.85);
         }
         
-        /* Animación Destello Ganador Sorteo */
         @keyframes winner-glow {
             0%, 100% { transform: scale(1); text-shadow: 0 0 15px #eab308; filter: brightness(1); }
             50% { transform: scale(1.04); text-shadow: 0 0 30px #eab308, 0 0 50px #f97316; filter: brightness(1.2); }
         }
         .animate-winner { animation: winner-glow 1s infinite ease-in-out; }
 
-        /* Estilos Ruleta */
         .roulette-container {
             position: relative;
             width: 320px;
@@ -231,7 +228,7 @@
                     </div>
                 </div>
                 <button onclick="updateAdminSettings()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-2 rounded-xl transition-all uppercase tracking-wider">
-                    Aplicar Cambios de Sorteo
+                    Guardar y Recordar Cambios
                 </button>
             </div>
 
@@ -287,49 +284,114 @@
         let ruletaParticipantes = [];
         let isSpinning = false;
 
-        // NAVEGACIÓN
+        // PERSISTENCIA ABSOLUTA (LOCALSTORAGE)
+        function saveSettingsToStorage() {
+            const settings = {
+                title: document.getElementById('input-prize-title').value,
+                name: document.getElementById('input-prize-name').value,
+                url: document.getElementById('input-prize-url').value,
+                time: document.getElementById('input-prize-time').value,
+                goal: document.getElementById('input-goal').value,
+                desc: document.getElementById('input-prize-desc').value,
+                webhook: document.getElementById('input-webhook-url').value
+            };
+            localStorage.setItem('bigbang_jackpot_v5_settings', JSON.stringify(settings));
+        }
+
+        function loadSettingsFromStorage() {
+            const saved = localStorage.getItem('bigbang_jackpot_v5_settings');
+            
+            // Valores por defecto infalibles si no hay nada guardado
+            const defaults = {
+                title: "🏆 ¡Gran Premio BigBang! 🏆",
+                name: "Gran Electrodoméstico",
+                url: "https://images.unsplash.com/photo-1621972750749-0fbb1abb7736?q=80&w=500&auto=format&fit=crop",
+                time: "Sorteo Periódico Activo",
+                goal: "100",
+                desc: "Se rifará al completarse el ciclo actual de 10 días.",
+                webhook: "https://n8n-stanlyrodriguez-vps.duckdns.org/webhook/Jackpot-Tickets"
+            };
+
+            const s = saved ? JSON.parse(saved) : defaults;
+
+            // Inyectar en inputs del panel de administración
+            document.getElementById('input-prize-title').value = s.title || defaults.title;
+            document.getElementById('input-prize-name').value = s.name || defaults.name;
+            document.getElementById('input-prize-url').value = s.url || defaults.url;
+            document.getElementById('input-prize-time').value = s.time || defaults.time;
+            document.getElementById('input-goal').value = s.goal || defaults.goal;
+            document.getElementById('input-prize-desc').value = s.desc || defaults.desc;
+            document.getElementById('input-webhook-url').value = s.webhook || defaults.webhook;
+            
+            metaTickets = parseInt(s.goal || defaults.goal) || 100;
+            currentWebhookUrl = s.webhook || defaults.webhook;
+
+            // Pintar visualmente en las pantallas principales
+            document.getElementById('display-prize-title').innerText = s.title || defaults.title;
+            document.getElementById('display-prize-name').innerText = s.name || defaults.name;
+            document.getElementById('display-prize-img').src = s.url || defaults.url;
+            document.getElementById('display-prize-time').innerText = s.time || defaults.time;
+            document.getElementById('display-prize-desc').innerText = s.desc || defaults.desc;
+        }
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.getElementById(tabId).classList.remove('hidden');
-            
             document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('tab-activo'));
             const tabsMap = { 'tab-dashboard': 'btn-tab-dashboard', 'tab-ruleta': 'btn-tab-ruleta', 'tab-admin': 'btn-tab-admin' };
             document.getElementById(tabsMap[tabId]).classList.add('tab-activo');
-
-            if (tabId === 'tab-ruleta') {
-                drawWheel();
-            }
+            if (tabId === 'tab-ruleta') drawWheel();
         }
 
-        // FETCH WEBHOOK
+        // CONTROL DE DATOS PROTEGIDO CONTRA RESPUESTAS ERRÓNEAS DE N8N
         async function fetchJackpotData() {
-            const inputUrl = document.getElementById('input-webhook-url');
-            if (inputUrl && inputUrl.value.trim() !== "") {
-                currentWebhookUrl = inputUrl.value.trim();
-            }
-
             try {
                 const response = await fetch(currentWebhookUrl);
-                if (!response.ok) throw new Error("Error de red");
+                if (!response.ok) throw new Error("HTTP Status: " + response.status);
                 const data = await response.json();
                 
-                dataGlobal.clientes = data.clientes || data || [];
+                // Forzar formato de Arreglo (Evita que la interfaz se caiga si n8n manda un Objeto simple)
+                if (Array.isArray(data)) {
+                    dataGlobal.clientes = data;
+                } else if (data && Array.isArray(data.clientes)) {
+                    dataGlobal.clientes = data.clientes;
+                } else {
+                    console.warn("n8n no está enviando un arreglo de clientes aún.", data);
+                }
 
                 renderDashboard();
                 updateAdminPool();
                 if (ruletaParticipantes.length === 0) loadDatabaseToRoulette();
             } catch (error) {
-                console.error("Error conectando al webhook:", error);
+                console.error("Monitoreo de red en espera...", error);
             }
         }
 
         async function manualRefreshData() {
-            await fetchJackpotData();
-            loadDatabaseToRoulette();
-            alert("Sincronización completada exitosamente.");
+            const inputUrl = document.getElementById('input-webhook-url').value.trim();
+            try {
+                const response = await fetch(inputUrl);
+                if (!response.ok) throw new Error("Código: " + response.status);
+                const data = await response.json();
+                
+                if (Array.isArray(data)) {
+                    dataGlobal.clientes = data;
+                } else if (data && Array.isArray(data.clientes)) {
+                    dataGlobal.clientes = data.clientes;
+                } else {
+                    alert("⚠️ ¡Atención!\n\nEl webhook conectó con éxito, pero devolvió una confirmación en lugar de la lista completa de clientes.\n\nRecuerda añadir un nodo al final de tu flujo en n8n que lea todas las filas ('Get Many Rows') de tu tabla de clientes.");
+                    return;
+                }
+
+                renderDashboard();
+                updateAdminPool();
+                loadDatabaseToRoulette();
+                alert("¡Sincronización Exitosa! Datos de base de datos cargados.");
+            } catch (error) {
+                alert("⚠️ ERROR DE CONEXIÓN CON TU VPS:\n\n1. Asegúrate de que el flujo en n8n esté en ON (Publicado).\n2. Confirma los Headers de CORS en n8n.");
+            }
         }
 
-        // RENDERIZADOR DASHBOARD 
         function renderDashboard() {
             const totalTickets = dataGlobal.clientes.reduce((acc, c) => acc + parseInt(c.tickets || 0), 0);
             document.getElementById('global-ticket-count').innerText = String(totalTickets).padStart(3, '0');
@@ -338,11 +400,11 @@
             document.getElementById('goal-percentage').innerText = `${pctMeta}%`;
             document.getElementById('goal-bar').style.width = `${pctMeta}%`;
 
-            // 1. RENDERIZADO COMPRAS RECIENTES (Muestra tickets si existen)
+            // RENDERIZADO COMPRAS RECIENTES (Muestra puntos históricos aunque no tengan tickets aún)
             const recentContainer = document.getElementById('recent-purchases-container');
             recentContainer.innerHTML = "";
             if (dataGlobal.clientes.length === 0) {
-                recentContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">Esperando actividad...</p>`;
+                recentContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">Esperando actualización o datos del servidor...</p>`;
             } else {
                 dataGlobal.clientes.forEach(c => {
                     const tkts = parseInt(c.tickets || 0);
@@ -350,24 +412,24 @@
                     recentContainer.innerHTML += `
                         <div class="bg-gray-900/50 p-2.5 rounded-xl border border-gray-800/40 flex justify-between items-center text-xs">
                             <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                                <span class="font-medium text-gray-200">${c.customer_name}</span>
+                                <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                                <span class="font-medium text-gray-200">${c.customer_name || 'Cliente Sin Nombre'}</span>
                             </div>
                             <div class="text-gray-400 text-[11px] font-mono">
-                                <span>${c.puntos_periodo || 0} Pts${tktsBadge}</span>
+                                <span>${c.puntos_periodo || c.puntos || 0} Pts${tktsBadge}</span>
                             </div>
                         </div>
                     `;
                 });
             }
 
-            // 2. RENDERIZADO TOP 10 DE TICKETS 
+            // RENDERIZADO TOP 10
             const leaderboardContainer = document.getElementById('top-leaderboard');
             leaderboardContainer.innerHTML = "";
-            const top10 = [...dataGlobal.clientes].sort((a, b) => b.tickets - a.tickets).slice(0, 10);
+            const top10 = [...dataGlobal.clientes].sort((a, b) => parseInt(b.tickets || 0) - parseInt(a.tickets || 0)).slice(0, 10);
 
             if (top10.length === 0) {
-                leaderboardContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">Sin datos registrados.</p>`;
+                leaderboardContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">No hay boletos emitidos en este ciclo.</p>`;
             } else {
                 top10.forEach((c, idx) => {
                     const probabilidad = totalTickets > 0 ? Math.round((parseInt(c.tickets || 0) / totalTickets) * 100) : 0;
@@ -375,11 +437,11 @@
                         <div class="bg-gray-900/60 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs">
                             <div class="flex items-center gap-2">
                                 <span class="w-5 h-5 text-[10px] flex items-center justify-center font-bold rounded bg-gray-950 text-purple-400 border border-purple-900/30">${idx + 1}</span>
-                                <span class="font-semibold text-gray-300">${c.customer_name}</span>
+                                <span class="font-semibold text-gray-300">${c.customer_name || 'Cliente'}</span>
                             </div>
                             <div class="font-mono text-right flex items-center gap-2">
                                 <span class="text-yellow-400 font-bold">${c.tickets || 0} Tkts</span>
-                                <span class="text-[10px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded font-bold">${probabilidad}% éxito</span>
+                                <span class="text-[10px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded font-bold">${probabilidad}%</span>
                             </div>
                         </div>
                     `;
@@ -387,7 +449,6 @@
             }
         }
 
-        // GUARDAR CAMBIOS ADMIN
         function updateAdminSettings() {
             const title = document.getElementById('input-prize-title').value;
             const name = document.getElementById('input-prize-name').value;
@@ -396,33 +457,34 @@
             metaTickets = parseInt(document.getElementById('input-goal').value) || 100;
             const desc = document.getElementById('input-prize-desc').value;
 
-            if(title) document.getElementById('display-prize-title').innerText = title;
-            if(name) document.getElementById('display-prize-name').innerText = name;
-            if(url) document.getElementById('display-prize-img').src = url;
-            if(time) document.getElementById('display-prize-time').innerText = time;
-            if(desc) document.getElementById('display-prize-desc').innerText = desc;
+            document.getElementById('display-prize-title').innerText = title;
+            document.getElementById('display-prize-name').innerText = name;
+            document.getElementById('display-prize-img').src = url;
+            document.getElementById('display-prize-time').innerText = time;
+            document.getElementById('display-prize-desc').innerText = desc;
 
+            saveSettingsToStorage();
             renderDashboard();
-            alert("Ajustes de sorteo aplicados correctamente.");
+            alert("🔒 Configuración del premio y textos guardada de forma permanente.");
         }
 
         function updateAdminPool() {
             const list = document.getElementById('admin-pool-list');
             list.innerHTML = "";
-            const aptos = dataGlobal.clientes.filter(c => parseInt(c.tickets || 0) > 0);
-            document.getElementById('pool-count').innerText = `${aptos.length} Activos`;
+            const aptos = dataGlobal.clientes;
+            document.getElementById('pool-count').innerText = `${aptos.length} Clientes`;
 
             if(aptos.length === 0) {
-                list.innerHTML = `<div class="p-2 text-center text-gray-600 italic">No hay datos de clientes con tickets</div>`;
+                list.innerHTML = `<div class="p-2 text-center text-gray-600 italic">No hay datos en cache</div>`;
             } else {
                 aptos.forEach(c => {
-                    list.innerHTML += `<div class="flex justify-between py-0.5 border-b border-gray-900"><span>• ${c.customer_name}</span><span>${c.tickets} Tkts</span></div>`;
+                    list.innerHTML += `<div class="flex justify-between py-0.5 border-b border-gray-900"><span>• ${c.customer_name || 'Anonimo'}</span><span>${c.tickets || 0} Tkts</span></div>`;
                 });
             }
         }
 
         function triggerResetDatabase() {
-            if(confirm("¿Vaciar temporalmente la visualización de datos de la interfaz?")) {
+            if(confirm("¿Limpiar vista previa temporal?")) {
                 dataGlobal.clientes = [];
                 renderDashboard();
                 updateAdminPool();
@@ -430,7 +492,7 @@
             }
         }
 
-        // LOGICA DE LA RULETA CÓSMICA
+        // RULETA
         const canvas = document.getElementById("wheel");
         const ctx = canvas.getContext("2d");
 
@@ -438,7 +500,7 @@
             ruletaParticipantes = [];
             dataGlobal.clientes.forEach(c => {
                 const tkts = parseInt(c.tickets || 0);
-                for(let i=0; i<tkts; i++) ruletaParticipantes.push(c.customer_name);
+                for(let i=0; i<tkts; i++) ruletaParticipantes.push(c.customer_name || 'Cliente');
             });
             if(ruletaParticipantes.length === 0) {
                 ruletaParticipantes = ["Esperando Clientes", "BigBang Sorteo", "BigBang POS"];
@@ -482,7 +544,6 @@
 
             const giros = 6 + Math.floor(Math.random() * 5);
             const totalGrados = giros * 360 + Math.floor(Math.random() * 360);
-            
             const wheelElement = document.getElementById("wheel");
             wheelElement.style.transform = `rotate(${totalGrados}deg)`;
 
@@ -509,7 +570,8 @@
             }, 6000);
         }
 
-        // INICIACIÓN AUTOMÁTICA
+        // AUTO ARRANQUE SEGURO
+        loadSettingsFromStorage();
         fetchJackpotData();
         setInterval(fetchJackpotData, 30000);
     </script>
