@@ -20,17 +20,17 @@
         
         /* Estilos Neón */
         .neon-border-orange {
-            box-shadow: 0 0 15px rgba(249, 115, 22, 0.2), inset 0 0 15px rgba(249, 115, 22, 0.05);
-            border: 1px solid rgba(249, 115, 22, 0.3);
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.25), inset 0 0 15px rgba(249, 115, 22, 0.05);
+            border: 1px solid rgba(249, 115, 22, 0.4);
         }
         .neon-text-yellow {
-            text-shadow: 0 0 12px rgba(234, 179, 8, 0.8);
+            text-shadow: 0 0 15px rgba(234, 179, 8, 0.85);
         }
         
         /* Animación Destello Ganador Sorteo */
         @keyframes winner-glow {
             0%, 100% { transform: scale(1); text-shadow: 0 0 15px #eab308; filter: brightness(1); }
-            50% { transform: scale(1.05); text-shadow: 0 0 30px #eab308, 0 0 50px #f97316; filter: brightness(1.3); }
+            50% { transform: scale(1.04); text-shadow: 0 0 30px #eab308, 0 0 50px #f97316; filter: brightness(1.2); }
         }
         .animate-winner { animation: winner-glow 1s infinite ease-in-out; }
 
@@ -132,40 +132,43 @@
                 </div>
             </section>
 
-            <section class="bg-gray-950/40 backdrop-blur-md rounded-3xl p-6 flex flex-col justify-between border border-gray-800/80 text-center neon-border-orange">
+            <section class="bg-gray-950/40 backdrop-blur-md rounded-3xl p-6 flex flex-col justify-between border border-gray-800/80 text-center neon-border-orange relative overflow-hidden">
                 <div>
-                    <span class="font-cosmic text-[10px] text-orange-400 uppercase tracking-widest font-bold">🎉 Premio del Sorteo Principal 🎉</span>
-                </div>
-
-                <div class="my-3 flex justify-center items-center">
-                    <img id="display-prize-img" src="https://images.unsplash.com/photo-1621972750749-0fbb1abb7736?q=80&w=400&auto=format&fit=crop" alt="Premio" class="w-auto h-44 md:h-48 object-contain rounded-2xl shadow-xl border border-gray-800/60 transition-all">
-                </div>
-
-                <div>
-                    <h3 id="display-prize-name" class="text-xl font-bold text-white uppercase tracking-wide neon-text-yellow">Gran Electrodoméstico</h3>
-                    <p id="display-prize-desc" class="text-xs text-gray-400 mt-1 max-w-md mx-auto leading-relaxed">Se rifará al completarse el ciclo actual de 10 días.</p>
-                </div>
-            </section>
-
-            <section class="bg-gray-950/40 backdrop-blur-md rounded-3xl p-6 border border-gray-800/80 flex flex-col justify-between">
-                <div class="mb-3">
-                    <h2 class="font-cosmic text-md font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left"></i> Actividad del Sistema
+                    <h2 id="display-prize-title" class="font-cosmic text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-widest">
+                        🏆 ¡Gran Premio BigBang! 🏆
                     </h2>
-                    <p class="text-gray-400 text-xs">Últimos clientes sincronizados desde la base de datos</p>
+                    <p id="display-prize-time" class="text-[10px] text-purple-400 uppercase tracking-wider font-semibold font-mono mt-0.5">Sorteo Periódico Activo</p>
                 </div>
-                <div class="space-y-2 overflow-y-auto max-h-[220px] pr-1 custom-scroll" id="recent-purchases-container">
-                    </div>
+
+                <div class="my-4 flex justify-center items-center">
+                    <img id="display-prize-img" src="https://images.unsplash.com/photo-1621972750749-0fbb1abb7736?q=80&w=500&auto=format&fit=crop" alt="Premio Sorteo" class="w-full max-w-[360px] h-56 md:h-64 object-cover rounded-2xl shadow-2xl border border-purple-500/30 transition-all duration-300">
+                </div>
+
+                <div>
+                    <h3 id="display-prize-name" class="text-xl md:text-2xl font-bold text-white uppercase tracking-wide neon-text-yellow">Gran Electrodoméstico</h3>
+                    <p id="display-prize-desc" class="text-xs text-gray-400 mt-1 max-w-sm mx-auto leading-relaxed">Se rifará al completarse el ciclo actual de 10 días.</p>
+                </div>
             </section>
 
             <section class="bg-gray-950/40 backdrop-blur-md rounded-3xl p-6 border border-gray-800/80 flex flex-col justify-between">
                 <div class="mb-3">
                     <h2 class="font-cosmic text-md font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-percent"></i> Tabla de Probabilidades
+                        <i class="fa-solid fa-trophy text-yellow-500"></i> Top 10 de Tickets
                     </h2>
-                    <p class="text-gray-400 text-xs">Top 10 ordenado por porcentaje de éxito real matemático</p>
+                    <p class="text-gray-400 text-xs">Clientes con mayor acumulación y probabilidad de éxito</p>
                 </div>
-                <div class="space-y-2 overflow-y-auto max-h-[220px] pr-1 custom-scroll" id="top-leaderboard">
+                <div class="space-y-2 overflow-y-auto max-h-[240px] pr-1 custom-scroll" id="top-leaderboard">
+                    </div>
+            </section>
+
+            <section class="bg-gray-950/40 backdrop-blur-md rounded-3xl p-6 border border-gray-800/80 flex flex-col justify-between">
+                <div class="mb-3">
+                    <h2 class="font-cosmic text-md font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-basket-shopping"></i> Compras Recientes
+                    </h2>
+                    <p class="text-gray-400 text-xs">Flujo de clientes sincronizados y puntos del período actual</p>
+                </div>
+                <div class="space-y-2 overflow-y-auto max-h-[240px] pr-1 custom-scroll" id="recent-purchases-container">
                     </div>
             </section>
         </div>
@@ -174,7 +177,7 @@
             <h2 class="font-cosmic text-2xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 uppercase mb-1">
                 🎡 La Ruleta BigBang
             </h2>
-            <p class="text-xs text-gray-400 mb-5">Las probabilidades corresponden exactamente a tus tickets acumulados.</p>
+            <p class="text-xs text-gray-400 mb-5">Cada ticket representa una porción matemática exacta en la ruleta cósmica.</p>
             
             <div class="roulette-container mb-5">
                 <div class="pointer"></div>
@@ -193,74 +196,98 @@
 
         <div id="tab-admin" class="tab-content hidden max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <div class="bg-gray-950/50 p-6 rounded-2xl border border-gray-800 flex flex-col justify-between">
+            <div class="bg-gray-950/50 p-6 rounded-2xl border border-gray-800 flex flex-col justify-between space-y-4">
                 <div>
                     <h3 class="font-cosmic text-xs font-bold text-orange-400 uppercase tracking-wider mb-3 border-b border-gray-900 pb-2">
-                        <i class="fa-solid fa-gift"></i> Gestión del Premio Principal
+                        <i class="fa-solid fa-gift"></i> Configuración de Sorteo y Premio
                     </h3>
-                    <div class="space-y-3">
+                    <div class="space-y-2.5">
                         <div>
-                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Nombre del Producto</label>
-                            <input type="text" id="input-prize-name" value="Gran Electrodoméstico" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none">
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-0.5">Encabezado de Banner (Superior)</label>
+                            <input type="text" id="input-prize-title" value="🏆 ¡Gran Premio BigBang! 🏆" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">URL de la Imagen</label>
-                            <input type="text" id="input-prize-url" value="https://images.unsplash.com/photo-1621972750749-0fbb1abb7736?q=80&w=400&auto=format&fit=crop" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none">
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-0.5">Nombre del Producto</label>
+                            <input type="text" id="input-prize-name" value="Gran Electrodoméstico" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Descripción corta</label>
-                            <textarea id="input-prize-desc" rows="2" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none">Se rifará al completarse el ciclo actual de 10 días.</textarea>
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-0.5">URL de la Imagen (Grande)</label>
+                            <input type="text" id="input-prize-url" value="https://images.unsplash.com/photo-1621972750749-0fbb1abb7736?q=80&w=500&auto=format&fit=crop" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] uppercase font-bold text-gray-400 mb-0.5">Meta Tickets</label>
+                                <input type="number" id="input-goal" value="100" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] uppercase font-bold text-gray-400 mb-0.5">Tiempo / Estado</label>
+                                <input type="text" id="input-prize-time" value="Sorteo Periódico Activo" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none" placeholder="Ej: Faltan 2 días">
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Meta de Tickets Sorteo</label>
-                            <input type="number" id="input-goal" value="100" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none">
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-0.5">Descripción Corta</label>
+                            <textarea id="input-prize-desc" rows="2" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none">Se rifará al completarse el ciclo actual de 10 días.</textarea>
                         </div>
                     </div>
                 </div>
-                <button onclick="updateAdminSettings()" class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-2 rounded-xl transition-all uppercase">
-                    Actualizar Sorteo
+                <button onclick="updateAdminSettings()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-2 rounded-xl transition-all uppercase tracking-wider">
+                    Aplicar Cambios de Sorteo
                 </button>
             </div>
 
-            <div class="bg-gray-950/50 p-6 rounded-2xl border border-gray-800 flex flex-col justify-between">
+            <div class="bg-gray-950/50 p-6 rounded-2xl border border-gray-800 flex flex-col justify-between space-y-4">
                 <div>
                     <h3 class="font-cosmic text-xs font-bold text-yellow-500 uppercase tracking-wider mb-2 border-b border-gray-900 pb-2 flex justify-between items-center">
-                        <span><i class="fa-solid fa-database"></i> Servidor Mapeo Webhook</span>
-                        <span class="text-[10px] bg-purple-900/40 text-purple-300 px-2 py-0.5 rounded" id="pool-count">0 Activos</span>
+                        <span><i class="fa-solid fa-server"></i> Conectividad y Control</span>
+                        <span class="text-[10px] bg-purple-900/40 text-purple-300 px-2 py-0.5 rounded font-mono" id="pool-count">0 Clientes</span>
                     </h3>
                     
-                    <div class="bg-gray-950/80 rounded-xl p-3 border border-gray-900 mb-4">
-                        <div class="max-h-[160px] overflow-y-auto text-xs space-y-1 font-mono text-gray-400 custom-scroll" id="admin-pool-list">
+                    <div class="space-y-2 mb-3">
+                        <div>
+                            <label class="block text-[9px] uppercase font-bold text-gray-500 mb-0.5">Ruta del Webhook API (n8n VPS)</label>
+                            <input type="text" id="input-webhook-url" value="https://n8n-stanlyrodriguez-vps.duckdns.org/webhook-test/Jackpot-Tickets" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1 text-[11px] text-gray-400 font-mono focus:outline-none focus:border-cyan-500">
+                        </div>
+                    </div>
+
+                    <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Previsualización de Base de Datos</label>
+                    <div class="bg-gray-950/80 rounded-xl p-2.5 border border-gray-900 mb-3">
+                        <div class="max-h-[100px] overflow-y-auto text-[11px] space-y-0.5 font-mono text-gray-400 custom-scroll" id="admin-pool-list">
                             </div>
                     </div>
 
-                    <div class="space-y-2">
-                        <button onclick="manualRefreshData()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-xs font-bold py-2 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg">
-                            <i class="fa-solid fa-sync"></i> Forzar Sincronización Webhook
-                        </button>
-                        <button onclick="triggerResetDatabase()" class="w-full bg-red-950/40 text-red-400 border border-red-900/30 text-xs font-medium py-2 rounded-xl">
-                            Limpiar Caché Visual
-                        </button>
+                    <label class="block text-[10px] uppercase font-bold text-orange-400 mb-1">Historial de Ganadores (Esta sesión)</label>
+                    <div class="bg-gray-950/80 rounded-xl p-2 border border-gray-900">
+                        <div class="max-h-[70px] overflow-y-auto text-[11px] font-mono text-gray-400 custom-scroll" id="admin-winner-log">
+                            <div class="text-gray-600 italic text-center text-[10px]">Ningún giro registrado aún.</div>
+                        </div>
                     </div>
                 </div>
-                <div class="text-[10px] text-gray-600 italic text-center font-mono mt-2">Oracle Cloud VPS Integrado</div>
+
+                <div class="space-y-2">
+                    <button onclick="manualRefreshData()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-sync"></i> Sincronizar con Webhook
+                    </button>
+                    <button onclick="triggerResetDatabase()" class="w-full bg-red-950/40 text-red-400 border border-red-900/30 text-xs font-medium py-1.5 rounded-xl">
+                        Limpiar Datos Visuales
+                    </button>
+                </div>
             </div>
         </div>
 
     </main>
 
     <footer class="text-center text-[10px] text-gray-600 font-mono mt-4">
-        BigBang POS Dashboard &copy; 2026
+        BigBang POS Dashboard Ecosystem &copy; 2026
     </footer>
 
     <script>
-        const WEBHOOK_URL = "https://n8n-stanlyrodriguez-vps.duckdns.org/webhook-test/Jackpot-Tickets";
+        let currentWebhookUrl = "https://n8n-stanlyrodriguez-vps.duckdns.org/webhook-test/Jackpot-Tickets";
         let dataGlobal = { clientes: [] };
         let metaTickets = 100;
         let ruletaParticipantes = [];
         let isSpinning = false;
 
-        // MANEJO DE NAVEGACIÓN
+        // NAVEGACIÓN
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.getElementById(tabId).classList.remove('hidden');
@@ -274,14 +301,19 @@
             }
         }
 
-        // PETICION AL WEBHOOK N8N
+        // FETCH WEBHOOK DINÁMICO
         async function fetchJackpotData() {
+            // Leer URL directamente desde el input de administración si existe
+            const inputUrl = document.getElementById('input-webhook-url');
+            if (inputUrl && inputUrl.value.trim() !== "") {
+                currentWebhookUrl = inputUrl.value.trim();
+            }
+
             try {
-                const response = await fetch(WEBHOOK_URL);
-                if (!response.ok) throw new Error("Error red");
+                const response = await fetch(currentWebhookUrl);
+                if (!response.ok) throw new Error("Error de red");
                 const data = await response.json();
                 
-                // Mapear respuesta directo desde la tabla
                 dataGlobal.clientes = data.clientes || data || [];
 
                 renderDashboard();
@@ -292,14 +324,13 @@
             }
         }
 
-        // COMPORTAMIENTO PANEL AUTOMÁTICO / MANUAL
         async function manualRefreshData() {
             await fetchJackpotData();
             loadDatabaseToRoulette();
             alert("Sincronización completada exitosamente.");
         }
 
-        // RENDERIZADOR COMPONENTES DE DASHBOARD
+        // RENDERIZADOR DASHBOARD (ESTRUCTURAS SOLICITADAS)
         function renderDashboard() {
             const totalTickets = dataGlobal.clientes.reduce((acc, c) => acc + parseInt(c.tickets || 0), 0);
             document.getElementById('global-ticket-count').innerText = String(totalTickets).padStart(3, '0');
@@ -308,33 +339,34 @@
             document.getElementById('goal-percentage').innerText = `${pctMeta}%`;
             document.getElementById('goal-bar').style.width = `${pctMeta}%`;
 
-            // 1. RENDER COMPRAS RECIENTES / ACTIVIDAD
+            // 1. RENDERIZADO COMPRAS RECIENTES
             const recentContainer = document.getElementById('recent-purchases-container');
             recentContainer.innerHTML = "";
             if (dataGlobal.clientes.length === 0) {
-                recentContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">Esperando actividad cósmica...</p>`;
+                recentContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">Esperando actividad...</p>`;
             } else {
-                // Mostrar la lista completa mapeada
                 dataGlobal.clientes.forEach(c => {
                     recentContainer.innerHTML += `
                         <div class="bg-gray-900/50 p-2.5 rounded-xl border border-gray-800/40 flex justify-between items-center text-xs">
                             <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
                                 <span class="font-medium text-gray-200">${c.customer_name}</span>
                             </div>
-                            <div class="text-gray-400 text-[11px] font-mono">${c.puntos_periodo || 0} Pts / <span class="text-yellow-500 font-bold">${c.tickets || 0} Tkts</span></div>
+                            <div class="text-gray-400 text-[11px] font-mono">
+                                <span>${c.puntos_periodo || 0} Pts</span>
+                            </div>
                         </div>
                     `;
                 });
             }
 
-            // 2. RENDER TABLA LÍDERES CON PROBABILIDADES
+            // 2. RENDERIZADO TOP 10 DE TICKETS (CON PROBABILIDADES)
             const leaderboardContainer = document.getElementById('top-leaderboard');
             leaderboardContainer.innerHTML = "";
             const top10 = [...dataGlobal.clientes].sort((a, b) => b.tickets - a.tickets).slice(0, 10);
 
             if (top10.length === 0) {
-                leaderboardContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">No hay datos en la tabla.</p>`;
+                leaderboardContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">Sin datos registrados.</p>`;
             } else {
                 top10.forEach((c, idx) => {
                     const probabilidad = totalTickets > 0 ? Math.round((parseInt(c.tickets || 0) / totalTickets) * 100) : 0;
@@ -344,9 +376,9 @@
                                 <span class="w-5 h-5 text-[10px] flex items-center justify-center font-bold rounded bg-gray-950 text-purple-400 border border-purple-900/30">${idx + 1}</span>
                                 <span class="font-semibold text-gray-300">${c.customer_name}</span>
                             </div>
-                            <div class="font-mono text-right">
-                                <span class="text-yellow-400 font-bold mr-2">${c.tickets} Tkts</span>
-                                <span class="text-[11px] bg-purple-900/30 text-purple-300 px-1.5 py-0.5 rounded font-bold">${probabilidad}% Prob.</span>
+                            <div class="font-mono text-right flex items-center gap-2">
+                                <span class="text-yellow-400 font-bold">${c.tickets} Tkts</span>
+                                <span class="text-[10px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded font-bold">${probabilidad}% éxito</span>
                             </div>
                         </div>
                     `;
@@ -354,19 +386,23 @@
             }
         }
 
-        // PANEL DE CONTROL ACCIONES
+        // GUARDAR CAMBIOS ADMIN
         function updateAdminSettings() {
+            const title = document.getElementById('input-prize-title').value;
             const name = document.getElementById('input-prize-name').value;
             const url = document.getElementById('input-prize-url').value;
-            const desc = document.getElementById('input-prize-desc').value;
+            const time = document.getElementById('input-prize-time').value;
             metaTickets = parseInt(document.getElementById('input-goal').value) || 100;
+            const desc = document.getElementById('input-prize-desc').value;
 
+            if(title) document.getElementById('display-prize-title').innerText = title;
             if(name) document.getElementById('display-prize-name').innerText = name;
             if(url) document.getElementById('display-prize-img').src = url;
+            if(time) document.getElementById('display-prize-time').innerText = time;
             if(desc) document.getElementById('display-prize-desc').innerText = desc;
 
             renderDashboard();
-            alert("Ajustes visuales de sorteo aplicados.");
+            alert("Ajustes avanzados aplicados correctamente.");
         }
 
         function updateAdminPool() {
@@ -376,7 +412,7 @@
             document.getElementById('pool-count').innerText = `${aptos.length} Activos`;
 
             if(aptos.length === 0) {
-                list.innerHTML = `<div class="p-2 text-center text-gray-600 italic">Vacio</div>`;
+                list.innerHTML = `<div class="p-2 text-center text-gray-600 italic">No hay datos de clientes</div>`;
             } else {
                 aptos.forEach(c => {
                     list.innerHTML += `<div class="flex justify-between py-0.5 border-b border-gray-900"><span>• ${c.customer_name}</span><span>${c.tickets} Tkts</span></div>`;
@@ -385,7 +421,7 @@
         }
 
         function triggerResetDatabase() {
-            if(confirm("¿Vaciar temporalmente la vista de datos?")) {
+            if(confirm("¿Vaciar temporalmente la visualización de datos de la interfaz?")) {
                 dataGlobal.clientes = [];
                 renderDashboard();
                 updateAdminPool();
@@ -393,7 +429,7 @@
             }
         }
 
-        // MOTOR DE LA RULETA DE PROBABILIDADES
+        // LOGICA DE LA RULETA CÓSMICA
         const canvas = document.getElementById("wheel");
         const ctx = canvas.getContext("2d");
 
@@ -404,7 +440,7 @@
                 for(let i=0; i<tkts; i++) ruletaParticipantes.push(c.customer_name);
             });
             if(ruletaParticipantes.length === 0) {
-                ruletaParticipantes = ["Esperando Datos", "BigBang Sorteo", "BigBang POS"];
+                ruletaParticipantes = ["Esperando Clientes", "BigBang Sorteo", "BigBang POS"];
             }
             drawWheel();
         }
@@ -458,8 +494,15 @@
                 const idxGanador = Math.floor(corrected / angleSegment) % segments;
                 const ganador = ruletaParticipantes[idxGanador];
 
+                // Mostrar en pantalla principal de Ruleta
                 document.getElementById('winner-name').innerText = ganador.toUpperCase();
                 document.getElementById('winner-display').classList.remove('hidden');
+
+                // Registrar en log administrativo de ganadores
+                const logContainer = document.getElementById('admin-winner-log');
+                if (logContainer.innerHTML.includes("Ningún giro registrado")) logContainer.innerHTML = "";
+                const timeStamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                logContainer.innerHTML = `<div class="text-[11px] border-b border-gray-900 py-0.5 flex justify-between"><span>🎉 ${ganador}</span><span class="text-gray-600">${timeStamp}</span></div>` + logContainer.innerHTML;
 
                 wheelElement.style.transition = "none";
                 wheelElement.style.transform = `rotate(${gradosReales}deg)`;
@@ -467,9 +510,9 @@
             }, 6000);
         }
 
-        // INICIAR PROCESOS AUTOMÁTICOS
+        // INICIACIÓN AUTOMÁTICA
         fetchJackpotData();
-        setInterval(fetchJackpotData, 30000); // 30 segundos auto-refresh silencioso
+        setInterval(fetchJackpotData, 30000);
     </script>
 </body>
 </html>
