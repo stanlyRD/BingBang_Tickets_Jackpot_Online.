@@ -155,7 +155,7 @@
                     <p class="text-gray-400 text-xs">Clientes con mayor acumulación y probabilidad de éxito</p>
                 </div>
                 <div class="space-y-2 overflow-y-auto max-h-[240px] pr-1 custom-scroll" id="top-leaderboard">
-                    </div>
+                </div>
             </section>
 
             <section class="bg-gray-950/40 backdrop-blur-md rounded-3xl p-6 border border-gray-800/80 flex flex-col justify-between">
@@ -166,7 +166,7 @@
                     <p class="text-gray-400 text-xs">Flujo de clientes sincronizados y puntos del período actual</p>
                 </div>
                 <div class="space-y-2 overflow-y-auto max-h-[240px] pr-1 custom-scroll" id="recent-purchases-container">
-                    </div>
+                </div>
             </section>
         </div>
 
@@ -249,7 +249,7 @@
                     <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Previsualización de Base de Datos</label>
                     <div class="bg-gray-950/80 rounded-xl p-2.5 border border-gray-900 mb-3">
                         <div class="max-h-[100px] overflow-y-auto text-[11px] space-y-0.5 font-mono text-gray-400 custom-scroll" id="admin-pool-list">
-                            </div>
+                        </div>
                     </div>
 
                     <label class="block text-[10px] uppercase font-bold text-orange-400 mb-1">Historial de Ganadores (Esta sesión)</label>
@@ -397,7 +397,7 @@
             document.getElementById('goal-percentage').innerText = `${pctMeta}%`;
             document.getElementById('goal-bar').style.width = `${pctMeta}%`;
 
-            // RENDERIZADO COMPRAS RECIENTES 
+            // RENDERIZADO COMPRAS RECIENTES (MUESTRA A TODOS EN EL ORDEN EXACTO DE LLEGADA)
             const recentContainer = document.getElementById('recent-purchases-container');
             recentContainer.innerHTML = "";
             if (dataGlobal.clientes.length === 0) {
@@ -423,13 +423,18 @@
                 });
             }
 
-            // RENDERIZADO TOP 10
+            // RENDERIZADO TOP 10 (FILTRADO STRICTO: SÓLO MUESTRA SI TIENEN AL MENOS 1 TICKET)
             const leaderboardContainer = document.getElementById('top-leaderboard');
             leaderboardContainer.innerHTML = "";
-            const top10 = [...dataGlobal.clientes].sort((a, b) => parseInt(b.Numero_De_Tickets || b.tickets || 0) - parseInt(a.Numero_De_Tickets || a.tickets || 0)).slice(0, 10);
+            
+            // 1. Filtramos para dejar fuera a los de 0 tickets
+            const clientesConTickets = dataGlobal.clientes.filter(c => parseInt(c.Numero_De_Tickets || c.tickets || 0) > 0);
+            
+            // 2. Ordenamos de mayor a menor y tomamos los primeros 10
+            const top10 = clientesConTickets.sort((a, b) => parseInt(b.Numero_De_Tickets || b.tickets || 0) - parseInt(a.Numero_De_Tickets || a.tickets || 0)).slice(0, 10);
 
             if (top10.length === 0) {
-                leaderboardContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">No hay boletos emitidos en este ciclo.</p>`;
+                leaderboardContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">No hay participantes con tickets en este ciclo.</p>`;
             } else {
                 top10.forEach((c, idx) => {
                     const name = c.Customer_Name || c.customer_name || 'Cliente';
@@ -543,43 +548,11 @@
             }
         }
 
-        function spinWheel() {
-            if (isSpinning) return;
-            isSpinning = true;
-            document.getElementById('winner-display').classList.add('hidden');
-
-            const giros = 6 + Math.floor(Math.random() * 5);
-            const totalGrados = giros * 360 + Math.floor(Math.random() * 360);
-            const wheelElement = document.getElementById("wheel");
-            wheelElement.style.transform = `rotate(${totalGrados}deg)`;
-
-            setTimeout(() => {
-                isSpinning = false;
-                const gradosReales = totalGrados % 360;
-                const segments = ruletaParticipantes.length;
-                const angleSegment = 360 / segments;
-                const corrected = (360 - gradosReales + 270) % 360;
-                const idxGanador = Math.floor(corrected / angleSegment) % segments;
-                const ganador = ruletaParticipantes[idxGanador];
-
-                document.getElementById('winner-name').innerText = ganador.toUpperCase();
-                document.getElementById('winner-display').classList.remove('hidden');
-
-                const logContainer = document.getElementById('admin-winner-log');
-                if (logContainer.innerHTML.includes("Ningún giro registrado")) logContainer.innerHTML = "";
-                const timeStamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                logContainer.innerHTML = `<div class="text-[11px] border-b border-gray-900 py-0.5 flex justify-between"><span>🎉 ${ganador}</span><span class="text-gray-600">${timeStamp}</span></div>` + logContainer.innerHTML;
-
-                wheelElement.style.transition = "none";
-                wheelElement.style.transform = `rotate(${gradosReales}deg)`;
-                setTimeout(() => { wheelElement.style.transition = "transform 6s cubic-bezier(0.1, 0.8, 0.1, 1)"; }, 50);
-            }, 6000);
-        }
-
-        // AUTO ARRANQUE SEGURO
-        loadSettingsFromStorage();
-        fetchJackpotData();
-        setInterval(fetchJackpotData, 30000);
+        window.onload = function() {
+            loadSettingsFromStorage();
+            fetchJackpotData();
+            setInterval(fetchJackpotData, 10000); // Auto-sincronización cada 10 segs
+        };
     </script>
 </body>
 </html>
