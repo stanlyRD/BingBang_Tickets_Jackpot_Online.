@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigBang Jackpot - Una Teoría Deliciosa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: radial-gradient(circle at center, #1a0b2e 0%, #05020a 100%);
+            background-attachment: fixed;
+        }
+        .font-cosmic { font-family: 'Orbitron', sans-serif; }
+        
+        /* Estilos Neón */
+        .neon-border-orange {
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.2), inset 0 0 15px rgba(249, 115, 22, 0.05);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        .neon-text-yellow {
+            text-shadow: 0 0 12px rgba(234, 179, 8, 0.8);
+        }
+        
+        /* Animación Destello Ganador Sorteo */
+        @keyframes winner-glow {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 15px #eab308; filter: brightness(1); }
+            50% { transform: scale(1.05); text-shadow: 0 0 30px #eab308, 0 0 50px #f97316; filter: brightness(1.3); }
+        }
+        .animate-winner { animation: winner-glow 1s infinite ease-in-out; }
+
+        /* Estilos Ruleta */
+        .roulette-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto;
+        }
+        @media(min-width: 768px) {
+            .roulette-container { width: 400px; height: 400px; }
+        }
+        #wheel {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            border: 8px solid #f97316;
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.4);
+            transition: transform 6s cubic-bezier(0.1, 0.8, 0.1, 1);
+        }
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #eab308;
+            z-index: 10;
+            filter: drop-shadow(0 0 6px #eab308);
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.4); border-radius: 4px; }
+
+        .tab-activo {
+            background: linear-gradient(to right, #7c3aed, #ea580c);
+            color: #ffffff !important;
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen p-4 md:p-6 flex flex-col justify-between">
+
+    <header class="max-w-7xl mx-auto w-full mb-6 flex flex-col items-center gap-4 border-b border-purple-900/30 pb-4">
+        <div class="text-center">
+            <div class="flex items-center justify-center gap-3 mb-1">
+                <div class="w-11 h-11 bg-gradient-to-br from-orange-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg border border-orange-400/20">
+                    <i class="fa-solid fa-user-astronaut text-lg text-white animate-bounce"></i>
+                </div>
+                <h1 class="font-cosmic text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-purple-500 uppercase">
+                    BigBang
+                </h1>
+            </div>
+            <p class="text-orange-400 font-medium tracking-widest text-xs uppercase">— Una Teoría Deliciosa —</p>
+        </div>
+
+        <nav class="flex bg-gray-950/80 p-1.5 rounded-2xl border border-gray-800 max-w-md w-full justify-between shadow-xl">
+            <button onclick="switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-activo flex-1 py-2 px-3 rounded-xl text-xs font-bold tracking-wider flex items-center justify-center gap-2 transition-all text-gray-400">
+                <i class="fa-solid fa-chart-pie"></i> Jackpot
+            </button>
+            <button onclick="switchTab('tab-ruleta')" id="btn-tab-ruleta" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold tracking-wider flex items-center justify-center gap-2 transition-all text-gray-400 hover:text-gray-200">
+                <i class="fa-solid fa-circle-notch"></i> Ruleta
+            </button>
+            <button onclick="switchTab('tab-admin')" id="btn-tab-admin" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold tracking-wider flex items-center justify-center gap-2 transition-all text-gray-400 hover:text-gray-200">
+                <i class="fa-solid fa-sliders"></i> Admin
+            </button>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full flex-grow">
+        
+        <div id="tab-dashboard" class="tab-content grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <section class="bg-purple-950/10 backdrop-blur-md rounded-3xl p-6 flex flex-col justify-between border border-purple-500/20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent">
+                <div class="text-center">
+                    <span class="bg-purple-900/50 text-purple-300 border border-purple-500/20 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider">
+                        <i class="fa-solid fa-circle-dot animate-ping mr-1 text-orange-400"></i> Acumulado Activo
+                    </span>
+                    <h2 class="font-cosmic text-xl font-bold mt-4 text-gray-200 uppercase tracking-wide">Tickets Jackpot</h2>
+                    <p class="text-gray-400 text-xs">Total acumulado global en el sistema</p>
+                </div>
+
+                <div class="text-center my-4">
+                    <div class="font-cosmic text-6xl md:text-7xl font-black text-yellow-400 neon-text-yellow tracking-widest inline-block" id="global-ticket-count">000</div>
+                    <p class="text-[10px] text-orange-400 uppercase tracking-widest mt-1 font-semibold">Boletos en Órbita</p>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-[11px] text-gray-400 mb-1.5 font-mono">
+                        <span>Progreso Meta</span>
+                        <span id="goal-percentage">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-950 rounded-full h-3.5 p-0.5 overflow-hidden border border-gray-800">
+                        <div id="goal-bar" class="bg-gradient-to-r from-orange-500 to-yellow-400 h-full rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-gray-950/40 backdrop-blur-md rounded-3xl p-6 flex flex-col justify-between border border-gray-800/80 text-center neon-border-orange">
+                <div>
+                    <span class="font-cosmic text-[10px] text-orange-400 uppercase tracking-widest font-bold">🎉 Premio del Sorteo Principal 🎉</span>
+                </div>
+
+                <div class="my-3 flex justify-center items-center">
+                    <img id="display-prize-img" src="https://images.unsplash.com/photo-1621972750749-0fbb1abb7736?q=80&w=400&auto=format&fit=crop" alt="Premio" class="w-auto h-44 md:h-48 object-contain rounded-2xl shadow-xl border border-gray-800/60 transition-all">
+                </div>
+
+                <div>
+                    <h3 id="display-prize-name" class="text-xl font-bold text-white uppercase tracking-wide neon-text-yellow">Gran Electrodoméstico</h3>
+                    <p id="display-prize-desc" class="text-xs text-gray-400 mt-1 max-w-md mx-auto leading-relaxed">Se rifará al completarse el ciclo actual de 10 días.</p>
+                </div>
+            </section>
+
+            <section class="bg-gray-950/40 backdrop-blur-md rounded-3xl p-6 border border-gray-800/80 flex flex-col justify-between">
+                <div class="mb-3">
+                    <h2 class="font-cosmic text-md font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Actividad del Sistema
+                    </h2>
+                    <p class="text-gray-400 text-xs">Últimos clientes sincronizados desde la base de datos</p>
+                </div>
+                <div class="space-y-2 overflow-y-auto max-h-[220px] pr-1 custom-scroll" id="recent-purchases-container">
+                    </div>
+            </section>
+
+            <section class="bg-gray-950/40 backdrop-blur-md rounded-3xl p-6 border border-gray-800/80 flex flex-col justify-between">
+                <div class="mb-3">
+                    <h2 class="font-cosmic text-md font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-percent"></i> Tabla de Probabilidades
+                    </h2>
+                    <p class="text-gray-400 text-xs">Top 10 ordenado por porcentaje de éxito real matemático</p>
+                </div>
+                <div class="space-y-2 overflow-y-auto max-h-[220px] pr-1 custom-scroll" id="top-leaderboard">
+                    </div>
+            </section>
+        </div>
+
+        <div id="tab-ruleta" class="tab-content hidden max-w-2xl mx-auto bg-gray-950/30 backdrop-blur-md rounded-3xl p-6 text-center">
+            <h2 class="font-cosmic text-2xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400 uppercase mb-1">
+                🎡 La Ruleta BigBang
+            </h2>
+            <p class="text-xs text-gray-400 mb-5">Las probabilidades corresponden exactamente a tus tickets acumulados.</p>
+            
+            <div class="roulette-container mb-5">
+                <div class="pointer"></div>
+                <canvas id="wheel" width="500" height="500"></canvas>
+            </div>
+
+            <button onclick="spinWheel()" id="spin-button" class="font-cosmic bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-gray-950 text-xs font-black uppercase tracking-widest py-3 px-8 rounded-full shadow-lg hover:scale-105 transition-all">
+                🔥 ¡Girar Ruleta!
+            </button>
+            
+            <div id="winner-display" class="mt-5 hidden p-5 bg-purple-950/60 rounded-2xl border border-purple-400/40 shadow-2xl">
+                <h3 class="text-xs uppercase font-bold text-purple-300 tracking-widest font-cosmic">🎉 ¡Ganador Oficial Encontrado! 🎉</h3>
+                <p id="winner-name" class="font-cosmic text-4xl md:text-5xl font-black text-yellow-400 mt-2 tracking-tight uppercase animate-winner"></p>
+            </div>
+        </div>
+
+        <div id="tab-admin" class="tab-content hidden max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <div class="bg-gray-950/50 p-6 rounded-2xl border border-gray-800 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-cosmic text-xs font-bold text-orange-400 uppercase tracking-wider mb-3 border-b border-gray-900 pb-2">
+                        <i class="fa-solid fa-gift"></i> Gestión del Premio Principal
+                    </h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Nombre del Producto</label>
+                            <input type="text" id="input-prize-name" value="Gran Electrodoméstico" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">URL de la Imagen</label>
+                            <input type="text" id="input-prize-url" value="https://images.unsplash.com/photo-1621972750749-0fbb1abb7736?q=80&w=400&auto=format&fit=crop" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Descripción corta</label>
+                            <textarea id="input-prize-desc" rows="2" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none">Se rifará al completarse el ciclo actual de 10 días.</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Meta de Tickets Sorteo</label>
+                            <input type="number" id="input-goal" value="100" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+                <button onclick="updateAdminSettings()" class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-2 rounded-xl transition-all uppercase">
+                    Actualizar Sorteo
+                </button>
+            </div>
+
+            <div class="bg-gray-950/50 p-6 rounded-2xl border border-gray-800 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-cosmic text-xs font-bold text-yellow-500 uppercase tracking-wider mb-2 border-b border-gray-900 pb-2 flex justify-between items-center">
+                        <span><i class="fa-solid fa-database"></i> Servidor Mapeo Webhook</span>
+                        <span class="text-[10px] bg-purple-900/40 text-purple-300 px-2 py-0.5 rounded" id="pool-count">0 Activos</span>
+                    </h3>
+                    
+                    <div class="bg-gray-950/80 rounded-xl p-3 border border-gray-900 mb-4">
+                        <div class="max-h-[160px] overflow-y-auto text-xs space-y-1 font-mono text-gray-400 custom-scroll" id="admin-pool-list">
+                            </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <button onclick="manualRefreshData()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-xs font-bold py-2 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-sync"></i> Forzar Sincronización Webhook
+                        </button>
+                        <button onclick="triggerResetDatabase()" class="w-full bg-red-950/40 text-red-400 border border-red-900/30 text-xs font-medium py-2 rounded-xl">
+                            Limpiar Caché Visual
+                        </button>
+                    </div>
+                </div>
+                <div class="text-[10px] text-gray-600 italic text-center font-mono mt-2">Oracle Cloud VPS Integrado</div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center text-[10px] text-gray-600 font-mono mt-4">
+        BigBang POS Dashboard &copy; 2026
+    </footer>
+
+    <script>
+        const WEBHOOK_URL = "https://n8n-stanlyrodriguez-vps.duckdns.org/webhook-test/Jackpot-Tickets";
+        let dataGlobal = { clientes: [] };
+        let metaTickets = 100;
+        let ruletaParticipantes = [];
+        let isSpinning = false;
+
+        // MANEJO DE NAVEGACIÓN
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('tab-activo'));
+            const tabsMap = { 'tab-dashboard': 'btn-tab-dashboard', 'tab-ruleta': 'btn-tab-ruleta', 'tab-admin': 'btn-tab-admin' };
+            document.getElementById(tabsMap[tabId]).classList.add('tab-activo');
+
+            if (tabId === 'tab-ruleta') {
+                drawWheel();
+            }
+        }
+
+        // PETICION AL WEBHOOK N8N
+        async function fetchJackpotData() {
+            try {
+                const response = await fetch(WEBHOOK_URL);
+                if (!response.ok) throw new Error("Error red");
+                const data = await response.json();
+                
+                // Mapear respuesta directo desde la tabla
+                dataGlobal.clientes = data.clientes || data || [];
+
+                renderDashboard();
+                updateAdminPool();
+                if (ruletaParticipantes.length === 0) loadDatabaseToRoulette();
+            } catch (error) {
+                console.error("Error conectando al webhook:", error);
+            }
+        }
+
+        // COMPORTAMIENTO PANEL AUTOMÁTICO / MANUAL
+        async function manualRefreshData() {
+            await fetchJackpotData();
+            loadDatabaseToRoulette();
+            alert("Sincronización completada exitosamente.");
+        }
+
+        // RENDERIZADOR COMPONENTES DE DASHBOARD
+        function renderDashboard() {
+            const totalTickets = dataGlobal.clientes.reduce((acc, c) => acc + parseInt(c.tickets || 0), 0);
+            document.getElementById('global-ticket-count').innerText = String(totalTickets).padStart(3, '0');
+
+            const pctMeta = Math.min(Math.round((totalTickets / metaTickets) * 100), 100);
+            document.getElementById('goal-percentage').innerText = `${pctMeta}%`;
+            document.getElementById('goal-bar').style.width = `${pctMeta}%`;
+
+            // 1. RENDER COMPRAS RECIENTES / ACTIVIDAD
+            const recentContainer = document.getElementById('recent-purchases-container');
+            recentContainer.innerHTML = "";
+            if (dataGlobal.clientes.length === 0) {
+                recentContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">Esperando actividad cósmica...</p>`;
+            } else {
+                // Mostrar la lista completa mapeada
+                dataGlobal.clientes.forEach(c => {
+                    recentContainer.innerHTML += `
+                        <div class="bg-gray-900/50 p-2.5 rounded-xl border border-gray-800/40 flex justify-between items-center text-xs">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span class="font-medium text-gray-200">${c.customer_name}</span>
+                            </div>
+                            <div class="text-gray-400 text-[11px] font-mono">${c.puntos_periodo || 0} Pts / <span class="text-yellow-500 font-bold">${c.tickets || 0} Tkts</span></div>
+                        </div>
+                    `;
+                });
+            }
+
+            // 2. RENDER TABLA LÍDERES CON PROBABILIDADES
+            const leaderboardContainer = document.getElementById('top-leaderboard');
+            leaderboardContainer.innerHTML = "";
+            const top10 = [...dataGlobal.clientes].sort((a, b) => b.tickets - a.tickets).slice(0, 10);
+
+            if (top10.length === 0) {
+                leaderboardContainer.innerHTML = `<p class="text-gray-500 text-xs italic text-center py-4">No hay datos en la tabla.</p>`;
+            } else {
+                top10.forEach((c, idx) => {
+                    const probabilidad = totalTickets > 0 ? Math.round((parseInt(c.tickets || 0) / totalTickets) * 100) : 0;
+                    leaderboardContainer.innerHTML += `
+                        <div class="bg-gray-900/60 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="w-5 h-5 text-[10px] flex items-center justify-center font-bold rounded bg-gray-950 text-purple-400 border border-purple-900/30">${idx + 1}</span>
+                                <span class="font-semibold text-gray-300">${c.customer_name}</span>
+                            </div>
+                            <div class="font-mono text-right">
+                                <span class="text-yellow-400 font-bold mr-2">${c.tickets} Tkts</span>
+                                <span class="text-[11px] bg-purple-900/30 text-purple-300 px-1.5 py-0.5 rounded font-bold">${probabilidad}% Prob.</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // PANEL DE CONTROL ACCIONES
+        function updateAdminSettings() {
+            const name = document.getElementById('input-prize-name').value;
+            const url = document.getElementById('input-prize-url').value;
+            const desc = document.getElementById('input-prize-desc').value;
+            metaTickets = parseInt(document.getElementById('input-goal').value) || 100;
+
+            if(name) document.getElementById('display-prize-name').innerText = name;
+            if(url) document.getElementById('display-prize-img').src = url;
+            if(desc) document.getElementById('display-prize-desc').innerText = desc;
+
+            renderDashboard();
+            alert("Ajustes visuales de sorteo aplicados.");
+        }
+
+        function updateAdminPool() {
+            const list = document.getElementById('admin-pool-list');
+            list.innerHTML = "";
+            const aptos = dataGlobal.clientes.filter(c => parseInt(c.tickets || 0) > 0);
+            document.getElementById('pool-count').innerText = `${aptos.length} Activos`;
+
+            if(aptos.length === 0) {
+                list.innerHTML = `<div class="p-2 text-center text-gray-600 italic">Vacio</div>`;
+            } else {
+                aptos.forEach(c => {
+                    list.innerHTML += `<div class="flex justify-between py-0.5 border-b border-gray-900"><span>• ${c.customer_name}</span><span>${c.tickets} Tkts</span></div>`;
+                });
+            }
+        }
+
+        function triggerResetDatabase() {
+            if(confirm("¿Vaciar temporalmente la vista de datos?")) {
+                dataGlobal.clientes = [];
+                renderDashboard();
+                updateAdminPool();
+                loadDatabaseToRoulette();
+            }
+        }
+
+        // MOTOR DE LA RULETA DE PROBABILIDADES
+        const canvas = document.getElementById("wheel");
+        const ctx = canvas.getContext("2d");
+
+        function loadDatabaseToRoulette() {
+            ruletaParticipantes = [];
+            dataGlobal.clientes.forEach(c => {
+                const tkts = parseInt(c.tickets || 0);
+                for(let i=0; i<tkts; i++) ruletaParticipantes.push(c.customer_name);
+            });
+            if(ruletaParticipantes.length === 0) {
+                ruletaParticipantes = ["Esperando Datos", "BigBang Sorteo", "BigBang POS"];
+            }
+            drawWheel();
+        }
+
+        function drawWheel() {
+            const segments = ruletaParticipantes.length;
+            const angleSegment = (2 * Math.PI) / segments;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const colors = ["#1e0b2e", "#2e1065", "#4c1d95", "#0a051b"];
+
+            for (let i = 0; i < segments; i++) {
+                const angle = i * angleSegment;
+                ctx.beginPath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.moveTo(250, 250);
+                ctx.arc(250, 250, 240, angle, angle + angleSegment);
+                ctx.lineTo(250, 250);
+                ctx.fill();
+                ctx.strokeStyle = "rgba(249, 115, 22, 0.15)";
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(250, 250);
+                ctx.rotate(angle + angleSegment / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = i % 2 === 0 ? "#f3f4f6" : "#f97316";
+                ctx.font = "bold 11px Space Grotesk";
+                const name = ruletaParticipantes[i].length > 15 ? ruletaParticipantes[i].substring(0,13) + '..' : ruletaParticipantes[i];
+                ctx.fillText(name, 220, 4);
+                ctx.restore();
+            }
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            document.getElementById('winner-display').classList.add('hidden');
+
+            const giros = 6 + Math.floor(Math.random() * 5);
+            const totalGrados = giros * 360 + Math.floor(Math.random() * 360);
+            
+            const wheelElement = document.getElementById("wheel");
+            wheelElement.style.transform = `rotate(${totalGrados}deg)`;
+
+            setTimeout(() => {
+                isSpinning = false;
+                const gradosReales = totalGrados % 360;
+                const segments = ruletaParticipantes.length;
+                const angleSegment = 360 / segments;
+                const corrected = (360 - gradosReales + 270) % 360;
+                const idxGanador = Math.floor(corrected / angleSegment) % segments;
+                const ganador = ruletaParticipantes[idxGanador];
+
+                document.getElementById('winner-name').innerText = ganador.toUpperCase();
+                document.getElementById('winner-display').classList.remove('hidden');
+
+                wheelElement.style.transition = "none";
+                wheelElement.style.transform = `rotate(${gradosReales}deg)`;
+                setTimeout(() => { wheelElement.style.transition = "transform 6s cubic-bezier(0.1, 0.8, 0.1, 1)"; }, 50);
+            }, 6000);
+        }
+
+        // INICIAR PROCESOS AUTOMÁTICOS
+        fetchJackpotData();
+        setInterval(fetchJackpotData, 30000); // 30 segundos auto-refresh silencioso
+    </script>
+</body>
+</html>
