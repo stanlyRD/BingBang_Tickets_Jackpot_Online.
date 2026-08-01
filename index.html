@@ -585,6 +585,10 @@ nav { height: clamp(52px, 7vh, 68px); padding: 0 clamp(10px, 2vw, 24px); }
 .adm-stat-grid.cols-3{grid-template-columns:repeat(3,1fr);}
 
 </style>
+<!-- Firebase (Realtime Database) — sincronización en la nube -->
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
 </head>
 <body>
  
@@ -1001,6 +1005,58 @@ nav { height: clamp(52px, 7vh, 68px); padding: 0 clamp(10px, 2vw, 24px); }
 var ACCESS_USER='bigbang';
 var SORTEO_PASS='BigBang2026!';
 var ADMIN_PASS='Admin2026!';
+
+/* ===== SINCRONIZACIÓN EN LA NUBE (Firebase Realtime Database) =====
+   Mientras firebaseConfig esté sin llenar, la app funciona igual que antes
+   (guarda solo en el navegador con localStorage).
+   Para que el premio, el estado del jackpot y los ganadores se vean
+   IGUAL y EN VIVO en cualquier navegador/computadora, pega aquí la
+   configuración que te da tu proyecto de Firebase (ver instrucciones). */
+var firebaseConfig = {
+  apiKey: "AIzaSyAw4pl3091yBYsopYHpGwByF7MtHxN_aS4",
+  authDomain: "bigbang-jackpot.firebaseapp.com",
+  databaseURL: "https://bigbang-jackpot-default-rtdb.firebaseio.com",
+  projectId: "bigbang-jackpot",
+  storageBucket: "bigbang-jackpot.firebasestorage.app",
+  messagingSenderId: "421147621310",
+  appId: "1:421147621310:web:7d79cf98d7e3f71d59abef"
+};
+var _fbReady = false;
+try{
+  if(firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('PEGA_AQUI')===-1 && typeof firebase!=='undefined'){
+    firebase.initializeApp(firebaseConfig);
+    _fbReady = true;
+  }
+}catch(e){ console.warn('Firebase no se pudo inicializar:', e); }
+
+function cloudSave(key, value){
+  if(!_fbReady) return;
+  try{
+    firebase.database().ref('bigbang/'+key).set(value)
+      .catch(function(e){ console.warn('No se pudo sincronizar "'+key+'" con Firebase:', e); });
+  }catch(e){}
+}
+
+function cloudLoad(key){
+  return new Promise(function(resolve){
+    if(!_fbReady){ resolve(null); return; }
+    firebase.database().ref('bigbang/'+key).once('value')
+      .then(function(snap){ resolve(snap.exists() ? snap.val() : null); })
+      .catch(function(e){ console.warn('No se pudo leer "'+key+'" de Firebase:', e); resolve(null); });
+  });
+}
+
+/* Escucha cambios EN VIVO — si alguien cambia algo desde otro navegador,
+   aquí se actualiza automáticamente sin necesidad de refrescar (F5). */
+function cloudListen(key, callback){
+  if(!_fbReady) return;
+  try{
+    firebase.database().ref('bigbang/'+key).on('value', function(snap){
+      if(snap.exists()) callback(snap.val());
+    });
+  }catch(e){}
+}
+
 var adminUnlocked=false;
 window._sorteoUnlocked=false;
 window._pendingPage=null;
@@ -1023,6 +1079,7 @@ function logoutBigBang(){
   adminUnlocked=false;
   window._sorteoUnlocked=false;
   _liveClicks=0;
+  try{ if(_fbReady && firebase.auth && firebase.auth().currentUser){ firebase.auth().signOut(); } }catch(e){}
   var ts=document.getElementById('tab-sorteo');
   var ta=document.getElementById('tab-admin');
   if(ts) ts.style.display='none';
@@ -1069,6 +1126,13 @@ function checkAdminPass(){
   var expectedPass=window._pendingPage==='admin'?ADMIN_PASS:SORTEO_PASS;
   if(u===ACCESS_USER&&p===expectedPass){
     document.getElementById('admin-gate').classList.remove('show');
+    /* Habilita permiso de escritura en Firebase (requiere estar "autenticado",
+       aunque sea de forma anónima) solo después de pasar la contraseña. */
+    try{
+      if(_fbReady && firebase.auth && !firebase.auth().currentUser){
+        firebase.auth().signInAnonymously().catch(function(e){ console.warn('No se pudo autenticar con Firebase:', e); });
+      }
+    }catch(e){}
     if(window._pendingPage==='sorteo'){
       window._sorteoUnlocked=true;
       showPage('sorteo',window._pendingBtn);
@@ -1136,6 +1200,30 @@ function initApp(){
   renderTop();
   renderPurchases();
   buildSpinItems();
+  loadSavedPrize();
+  try{var st=localStorage.getItem('jk_status');if(st) setJackpotStatus(st);}catch(e){}
+  cloudLoad('jk_status').then(function(st){ if(st) setJackpotStatus(st); });
+  loadSavedGanadores();
+  startRealtimeSync();
+}
+
+/* Mantiene todas las pantallas al día EN VIVO, sin necesidad de refrescar (F5) */
+function startRealtimeSync(){
+  cloudListen('jk_prize', function(p){
+    try{ localStorage.setItem('jk_prize', JSON.stringify(p)); }catch(e){}
+    applyPrizeData(p);
+  });
+  cloudListen('jk_status', function(st){
+    try{ localStorage.setItem('jk_status', st); }catch(e){}
+    setJackpotStatus(st);
+  });
+  cloudListen('jk_ganadores', function(arr){
+    if(Array.isArray(arr)){
+      ganadores=arr;
+      try{ localStorage.setItem('jk_ganadores', JSON.stringify(arr)); }catch(e){}
+      renderHistory();
+    }
+  });
 }
  
 /* ===== RENDER TOP ===== */
@@ -1428,6 +1516,7 @@ function setJackpotStatus(status){
     if(btnA){btnA.style.borderColor='rgba(0,200,83,0.2)';btnA.style.background='rgba(0,200,83,0.05)';btnA.style.color='rgba(78,255,154,0.4)';}
   }
   try{localStorage.setItem('jk_status',status);}catch(e){}
+  cloudSave('jk_status', status);
 }
 
 function previewJackpotTitle(){
@@ -1721,6 +1810,8 @@ function showWinner(w,total){
   }
   ganadores.unshift({name:w.name,tkts:w.tkts,tel:w.tel,code:w.code,prize:(document.getElementById('prize-display-name') ? document.getElementById('prize-display-name').textContent : 'Premio del ciclo activo'),date:new Date().toLocaleString('es-DO')});
   renderHistory();
+  try{ localStorage.setItem('jk_ganadores', JSON.stringify(ganadores.slice(0,10))); }catch(e){}
+  cloudSave('jk_ganadores', ganadores.slice(0,10));
   var cnt=parseInt(document.getElementById('admin-sorteos-count').textContent||'0')+1;
   document.getElementById('admin-sorteos-count').textContent=cnt;
 }
@@ -1833,6 +1924,14 @@ function savePrize(){
   try{ localStorage.setItem('jk_prize',JSON.stringify({name:name,desc:desc,img:img})); }catch(e){
     alert('⚠️ No se pudo guardar (la imagen puede ser muy pesada para el almacenamiento del navegador). Prueba con una imagen más liviana o un link.');
   }
+  /* Sync to cloud (Google Sheets) so it looks the same in every browser */
+  if(img && img.indexOf('data:')===0 && img.length>45000){
+    if(CLOUD_SYNC_URL){
+      alert('⚠️ Guardado en este navegador. La foto que subiste es muy pesada para sincronizarse a la nube (límite de Google Sheets). Para que el premio se vea igual en todos los navegadores, usa una URL de imagen en vez de subir el archivo.');
+    }
+  } else {
+    cloudSave('jk_prize', {name:name, desc:desc, img:img});
+  }
   /* Apply image */
   if(img) applyPrizeImage(img, name);
   else { var w=document.getElementById('prize-img-wrap'); if(w){w.style='flex:1;';w.innerHTML='🎁';} }
@@ -1939,10 +2038,26 @@ function testAndLoadImage(){
 }
 
 function loadSavedPrize(){
+  applyPrizeFromLocal();
+  cloudLoad('jk_prize').then(function(p){
+    if(p){
+      try{ localStorage.setItem('jk_prize', JSON.stringify(p)); }catch(e){}
+      applyPrizeData(p);
+    }
+  });
+}
+
+function applyPrizeFromLocal(){
   try{
     var saved=localStorage.getItem('jk_prize');
     if(!saved) return;
-    var p=JSON.parse(saved);
+    applyPrizeData(JSON.parse(saved));
+  }catch(e){}
+}
+
+function applyPrizeData(p){
+  try{
+    if(!p) return;
     if(p.name){ var el=document.getElementById('admin-prize-name'); if(el) el.value=p.name; }
     if(p.desc){ var el2=document.getElementById('admin-prize-desc'); if(el2) el2.value=p.desc; }
     if(p.img){
@@ -1978,6 +2093,20 @@ function resetCycle(){
   if(!confirm('⚠️ ¿Resetear el ciclo? Se borrarán todos los tickets.'))return;
   alert('✅ Ciclo reseteado.');
 }
+function loadSavedGanadores(){
+  try{
+    var saved=localStorage.getItem('jk_ganadores');
+    if(saved){ var arr=JSON.parse(saved); if(Array.isArray(arr) && arr.length){ ganadores=arr; renderHistory(); } }
+  }catch(e){}
+  cloudLoad('jk_ganadores').then(function(arr){
+    if(Array.isArray(arr) && arr.length){
+      ganadores=arr;
+      try{ localStorage.setItem('jk_ganadores', JSON.stringify(ganadores)); }catch(e){}
+      renderHistory();
+    }
+  });
+}
+
 function renderHistory(){
   var html;
   if(!ganadores.length){
