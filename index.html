@@ -1032,6 +1032,13 @@ try{
   }
 }catch(e){ console.warn('Firebase no se pudo inicializar:', e); }
 
+/* ===== SINCRONIZACIÓN CON LOYVERSE (tickets por ciclo) =====
+   Pega aquí la URL /exec y el SYNC_SECRET de tu Apps Script de
+   Loyverse (ver Loyverse-Sync.gs). Mientras esté vacío, el botón
+   "Resetear Ciclo Actual" solo resetea lo local, sin tocar Loyverse. */
+var LOYVERSE_SYNC_URL = 'https://script.google.com/macros/s/AKfycbze9H9wcdKNCK1Gd2ER8npSTJsQw4kFIrzjT63CF_1KXso62HhEaHp6d7jUW8Puy2le/exec';
+var LOYVERSE_SYNC_SECRET = 'Elsicario161089';
+
 function cloudSave(key, value){
   if(!_fbReady) return;
   try{
@@ -1225,6 +1232,13 @@ function startRealtimeSync(){
       ganadores=arr;
       try{ localStorage.setItem('jk_ganadores', JSON.stringify(arr)); }catch(e){}
       renderHistory();
+    }
+  });
+  cloudListen('jk_topdata', function(arr){
+    if(Array.isArray(arr) && arr.length){
+      topData = arr;
+      renderTop();
+      buildSpinItems();
     }
   });
 }
@@ -2093,8 +2107,18 @@ function syncWebhook(){
   alert('↻ Sincronizando con: '+url);
 }
 function resetCycle(){
-  if(!confirm('⚠️ ¿Resetear el ciclo? Se borrarán todos los tickets.'))return;
-  alert('✅ Ciclo reseteado.');
+  if(!confirm('⚠️ ¿Resetear el ciclo? A partir de ahora solo contarán los puntos de las compras nuevas, no las de este ciclo.'))return;
+  if(LOYVERSE_SYNC_URL && LOYVERSE_SYNC_SECRET){
+    fetch(LOYVERSE_SYNC_URL+'?action=resetCycle&secret='+encodeURIComponent(LOYVERSE_SYNC_SECRET))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d && d.ok) alert('✅ Ciclo reiniciado. Los tickets se recalcularán desde ahora con las compras nuevas.');
+        else alert('⚠️ No se pudo conectar con Loyverse ('+(d&&d.error?d.error:'error desconocido')+'). El ciclo no se reinició.');
+      })
+      .catch(function(){ alert('⚠️ No se pudo conectar con la sincronización de Loyverse. Revisa la URL configurada.'); });
+  } else {
+    alert('✅ Ciclo reseteado. Nota: aún no has conectado la sincronización con Loyverse, así que esto solo afecta lo que se ve aquí — los puntos reales de Loyverse no se reiniciaron.');
+  }
 }
 function loadSavedGanadores(){
   try{
